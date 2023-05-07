@@ -1,0 +1,82 @@
+[tool.poetry]
+name = "glasgow-python-2023-05"
+version = "0.1.0"
+description = ""
+authors = ["Gabriele Calvo <gcalvo87@gmail.com>"]
+readme = "README.md"
+packages = [{include = "windy"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+requests = "^2.30.0"
+pandas = ">=1.0,<2"
+plotly = "^5.14.1"
+dagster = "^1.3.3"
+dagit = "^1.3.3"
+dagster-slack = "^0.19.4"
+
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.0.265"
+poethepoet = "^0.20.0"
+black = "^23.3.0"
+mypy = "^1.2.0"
+types-requests = "^2.30.0.0"
+pytest = "^7.3.1"
+pytest-random-order = ">=1.1.0"
+
+[tool.poetry.group.demo.dependencies]
+jupyterlab = "^3.6.3"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+line-length = 120
+select = ["E", "F", "W", "I001"]
+
+[tool.black]
+line-length = 120
+
+[tool.mypy]
+python_version = "3.10"
+ignore_missing_imports = true
+disallow_untyped_defs = true
+exclude = "tests|.venv|__ignore__"
+
+[tool.pytest.ini_options]
+addopts = "--random-order-seed=424242"
+filterwarnings = [
+    "ignore:Deprecated API features detected!*:sqlalchemy.exc.RemovedIn20Warning",
+    "ignore::DeprecationWarning",
+]
+
+[tool.poe.tasks]
+[tool.poe.tasks.lint]
+help = "Formats and lints the files"
+sequence = [
+    {shell = "poetry run black ."},
+    {shell = "poetry run ruff --fix ."},
+    {shell = "poetry run mypy ."},
+]
+
+[tool.poe.tasks.test]
+shell = "pytest tests"
+help = "Runs unit tests"
+
+[tool.poe.tasks.all]
+help = "Runs all pre-commit actions"
+sequence = ["lint", "test"]
+
+[tool.poe.tasks.demo-server]
+help = "Starts source file server"
+shell = "cd data/turbine-data && poetry run python -m http.server 8000"
+
+[tool.poe.tasks.demo-jupy]
+help = "Starts jupyterlab server"
+shell = "poetry run python -m jupyterlab"
+
+[tool.poe.tasks.demo-dagit]
+help = "Starts Dagster development environment"
+shell = "DAGSTER_HOME=$(realpath .)/.dagster_home poetry run dagster dev"
